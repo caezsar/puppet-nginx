@@ -39,7 +39,11 @@ In order to specify the name of the domain and an alias for the domain, if that'
 nginx::domain_name: 'domain.com'
 nginx::domain_alias: 'www.domain.com'
 ```
+On a cluster, you can setup the domain name using each cluster node `fqdn` fact. Then, just insert the below lines in each node `fqdn.yaml` file to setup custom node configurations.
 
+```
+nginx::domain_name: "%{facts.hostname}"
+```
 
 Define some upstream backends servers that you will be using to redirect requests for your domain. 
 You can define as many upstream servers as required. Just specify the name of the upstream backend and insert new items containing `server` directives, comments, load balancing methods, 'Passive Health Checks' for each server line or other upstream block settings. The advantage of this approach is that you can insert as many backend servers as required.
@@ -108,6 +112,12 @@ This line will insert the follwoing block of code in your domain conf file:
     }
 ```
 
+If you want to stop disable nginx service system-wide, on a node, insert the below lines:
+```
+nginx::service_status: 'stopped'
+nginx::service_enabled: false
+```
+
 ## Nginx forward proxy and log HTTP requests
 
 To forward HTTP reqests from internal LANs to internet via Nginx forward, first add `nginx::fproxy` class to hiera classes array.
@@ -124,6 +134,13 @@ Then, enable the proxy configuration file. However, if you first set the argumen
 ```
 nginx::fproxy::enable_proxy: true
 ```
+
+To rename Nginx default proxy file (`forward_proxy.conf`):
+
+```
+nginx::fproxy::fproxy_file: 'my_proxy.conf'
+```
+
 
 You can specify your own values for listening port, resolver and logs. Otherwise use defaults set-up via the module file
 
@@ -156,6 +173,9 @@ root@stg01-p-buc:~# tailf /var/log/nginx/proxy_access.log
 ^X^C
 root@stg01-p-buc:~# 
 ```
+
+
+
 
 ### A complete hiera configuration should look like this:
 
