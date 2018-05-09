@@ -119,7 +119,7 @@ classes:
   - nginx::fproxy
 ```
 
-Then enable the proxy configuration file. Otherwise it will not apply the proxy conf or the proxy conf file will be removed removed in the absence of this line or the argument set to `false`.
+Then, enable the proxy configuration file. However, if you first set the argument to `true` and then you change it `false` or delete this line, this causes the proxy conf file to be automatically removed.
 
 ```
 nginx::fproxy::enable_proxy: true
