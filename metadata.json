@@ -4,9 +4,9 @@
   "author": "caezsar",
   "summary": "Install Nginx and redirect requests via proxy",
   "license": "Apache-2.0",
-  "source": "https://github.com/caezsar/caezsar-nginx",
-  "project_page": "https://github.com/caezsar/caezsar-nginx",
-  "issues_url": "https://github.com/caezsar/caezsar-nginx/issues",
+  "source": "https://github.com/caezsar/puppet-nginx",
+  "project_page": "https://github.com/caezsar/puppet-nginx",
+  "issues_url": "https://github.com/caezsar/puppet-nginx",
   "dependencies": [
     {"name":"puppetlabs-stdlib","version_requirement":">= 1.0.0"}
   ],

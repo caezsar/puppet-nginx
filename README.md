@@ -90,7 +90,7 @@ nginx::base_domain_proxy_pass: 'http://10.10.10.10:80'
 ```
 
 However, you could use one of the defined upstream servers from above. So, the above line should have the below content:
-# When you referencing a upstream  backend server, make sure you define the backend in hiera .
+### When you referencing a upstream  backend server, make sure you define the backend in hiera .
 ```
 nginx::base_domain_proxy_pass: 'http://to_10.10.10.10'
 ```
@@ -150,7 +150,7 @@ nginx::fproxy::resolver: '8.8.8.8'
 ```
 
 
-# A complete hiera configuration should look like this:
+### A complete hiera configuration should look like this:
 
 ```
 ---
