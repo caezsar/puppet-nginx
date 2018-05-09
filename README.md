@@ -1,16 +1,5 @@
 # nginx
 
-#### Table of Contents
-
-1. [Description](#description)
-1. [Setup - The basics of getting started with nginx](#setup)
-    * [What nginx affects](#what-nginx-affects)
-    * [Setup requirements](#setup-requirements)
-    * [Beginning with nginx](#beginning-with-nginx)
-1. [Usage - Configuration options and additional functionality](#usage)
-1. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
-1. [Limitations - OS compatibility, etc.](#limitations)
-1. [Development - Guide for contributing to the module](#development)
 
 ## Description
 
@@ -23,7 +12,8 @@ To use this setup, client browsers must be configured to pass reqests via nginx 
 
 ## Setup and Use this module
 
-First added Nginx class to Hiera file configured for the specified host or cluster. EX: `/etc/puppet/code/hiera/nodes/nginx-p-vm001.yaml`
+First added Nginx class to Hiera file configured for the specified host or cluster. 
+EX: `/etc/puppet/code/hiera/nodes/nginx-p-vm001.yaml`
 
 This will just install a nginx server on the specified node with nginx default configurations provided by the distro. The default configurations will not be tampered for the moment
 
@@ -43,7 +33,7 @@ nginx::enable_domain_conf: true
 ```
 
 
-In order to specify the name of the domain and an alias for the if that's the case, insert the below lines in hiera.
+In order to specify the name of the domain and an alias for the domain, if that's the case, insert the below lines in hiera.
 
 ```
 nginx::domain_name: 'domain.com'
@@ -51,7 +41,7 @@ nginx::domain_alias: 'www.domain.com'
 ```
 
 
-To define some upstream backends servers that you will be using to redirect requests for your domain. 
+Define some upstream backends servers that you will be using to redirect requests for your domain. 
 You can define as many upstream servers as required. Just specify the name of the upstream backend and insert new items containing `server` directives, comments, load balancing methods, 'Passive Health Checks' for each server line or other upstream block settings. The advantage of this approach is that you can insert as many backend servers as required.
 
 ```
@@ -66,7 +56,7 @@ nginx::upstream_servers:
     - 'keepalive 32'
 ```
 
-The following upstreams will be inserted in Nginx configuration file for your domain:
+The following upstreams definitions will be inserted in Nginx configuration file for your domain:
 
 ```
         upstream to_10.10.10.10 {
@@ -81,7 +71,7 @@ The following upstreams will be inserted in Nginx configuration file for your do
 }
 ```
     
-To redirect HTTPS requests for `domain.com` to the first backend server assuming that the backend server is listening on port 80, insert the line in hiera (the `base_domain_proxy_pass` variable must have the following content `Protocol://IP:PORT` EX:(string) `http://20.20.20.20:80`)
+To redirect HTTPS requests for `domain.com` to the first backend server, assuming that the backend server is listening on port 80, insert the below line in hiera (the `base_domain_proxy_pass` variable must have the following content `Protocol://IP:PORT` EX: `http://20.20.20.20:80`)
 
 This first example uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. 
 
@@ -89,20 +79,20 @@ This first example uses direct proxy connection to a backend server  -  it does 
 nginx::base_domain_proxy_pass: 'http://10.10.10.10:80'
 ```
 
-However, you could use one of the defined upstream servers from above. So, the above line should have the below content:
-### When you referencing a upstream  backend server, make sure you define the backend in hiera .
+However, you could use one of the above defined upstream servers. So, the above line should have the below content:
+### When you referencing a upstream backend server in `base_domain_proxy_pass`, make sure you previously define the backend in hiera.
 ```
 nginx::base_domain_proxy_pass: 'http://to_10.10.10.10'
 ```
 
-To redirect all requests to comming to resource2, add the below line.  We also are referencing a pre-defined upstream server.  
+To redirect all requests to comming to `resource2`, add the below line.  We also are referencing a pre-defined upstream server.  
 
 ```
-# Redirect https://domain.com/resource2 to http://to_20.20.20.20 upstream defined above in hiera.
+# Redirect https://domain.com/resource2 requests to http://to_20.20.20.20 upstream backend previously defined in hiera.
 nginx::resource2_domain_proxy_pass: 'http://to_20.20.20.20'
 ```
 
-This line will insert the follwoing block in Nginx configuration file defined for your domain:
+This line will insert the follwoing block of code in your domain conf file:
 
 ```
     location /resource2 {
@@ -118,7 +108,7 @@ This line will insert the follwoing block in Nginx configuration file defined fo
     }
 ```
 
-
+## Nginx forward proxy and log HTTP requests
 
 To forward HTTP reqests from internal LANs to internet via Nginx forward, first add `nginx::fproxy` class to hiera classes array.
 
@@ -149,6 +139,23 @@ To change the proxy resolver:
 nginx::fproxy::resolver: '8.8.8.8'
 ```
 
+In the forward proxy conf file, the first block of code defines how requests should be logged. Nginx will also write to the log the follwoing requests: request protocol, remote IP and time take to serve the request, as illustrated in the below log file output:
+
+```
+root@stg01-p-buc:~# tailf /var/log/nginx/proxy_access.log 
+192.168.168.121 - - [09/May/2018:08:50:07 +0300] "CONNECT js-agent.newrelic.com:443 HTTP/1.1" 400 325 "-" "-" "-"0.001 - .
+192.168.168.121 - - [09/May/2018:08:50:11 +0300] "GET http://docs.nginx.com/nginx/ HTTP/1.1" 200 19592 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0" "-"0.555 0.555 .
+192.168.168.121 - - [09/May/2018:08:50:11 +0300] "CONNECT www.googletagmanager.com:443 HTTP/1.1" 400 325 "-" "-" "-"0.001 - .
+192.168.168.121 - - [09/May/2018:08:50:11 +0300] "GET http://docs.nginx.com/nginx/admin-guide/ HTTP/1.1" 200 1459 "http://docs.nginx.com/nginx/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0" "-"0.115 0.115 .
+192.168.168.121 - - [09/May/2018:08:50:14 +0300] "CONNECT amplify.nginx.com:443 HTTP/1.1" 400 325 "-" "-" "-"0.001 - .
+192.168.168.121 - - [09/May/2018:08:50:18 +0300] "CONNECT www.googletagmanager.com:443 HTTP/1.1" 400 325 "-" "-" "-"0.000 - .
+192.168.168.121 - - [09/May/2018:08:50:18 +0300] "GET http://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus-amazon-web-services/ HTTP/1.1" 200 7258 "http://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-open-source/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0" "-"0.114 0.114 .
+192.168.168.121 - - [09/May/2018:08:50:35 +0300] "CONNECT www.nginx.com:443 HTTP/1.1" 400 325 "-" "-" "-"0.001 - .
+192.168.168.121 - - [09/May/2018:08:50:38 +0300] "CONNECT 1-edge-chat.facebook.com:443 HTTP/1.1" 400 325 "-" "-" "-"0.001 - .
+192.168.168.121 - - [09/May/2018:08:50:39 +0300] "CONNECT 1-edge-chat.facebook.com:443 HTTP/1.1" 400 325 "-" "-" "-"0.001 - .
+^X^C
+root@stg01-p-buc:~# 
+```
 
 ### A complete hiera configuration should look like this:
 
