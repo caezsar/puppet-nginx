@@ -76,9 +76,9 @@ The following upstreams definitions will be inserted in Nginx configuration file
 }
 ```
     
-To redirect HTTPS requests for `domain.com` to the first backend server, assuming that the backend server is listening on port 80, insert the below line in hiera (the `base_domain_proxy_pass` variable must have the following content `Protocol://IP:PORT` EX: `http://20.20.20.20:80`)
 
-This first example from locations loop, the base location, uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. You need to first set locations loop to `true` before proceeding further.
+First you need to set locations loop to `true` before proceeding further.
+This first example from locations loop, the base location, uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. To redirect HTTPS requests for `domain.com` to a backend server, assuming that the backend server is listening on port 80, insert the below line in hiera (the `proxy_pass` variable must have the following content `Protocol://IP:PORT` EX: `http://20.20.20.20:80`)
 
 ```
 nginx::location_set: true
