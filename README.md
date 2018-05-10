@@ -196,7 +196,7 @@ root@stg01-p-buc:~#
 
 
 
-### A complete hiera configuration should look like this:
+### A complete [hiera](https://github.com/caezsar/puppet-nginx/blob/master/hiera.yaml) configuration should look like this:
 
 ```
 ---
@@ -236,7 +236,7 @@ nginx::locations:
        - 'X-Real-IP $remote_addr'
        - 'X-Forwarded-For $proxy_add_x_forwarded_for'
        - 'X-Forwarded-Proto $scheme'    
-    proxy_pass:  'http://10.100.20.240:8080'
+    proxy_pass:  'http://10.10.10.10:80'
     proxy_read_timeout: '10' 
     
 
