@@ -46,17 +46,17 @@ ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
     access_log            /var/log/nginx/<%= @domain_name %>_access.log;
     error_log             /var/log/nginx/<%= @domain_name %>_error.log;
 
-<% if @location_set == true -%>
+<% if @locations_set == true -%>
 
 <% @locations.each do |x| -%>
-location <%= x["loc_name"] %> {
+location <%= x["location_name"] %> {
     proxy_pass    <%= x["proxy_pass"] %>;
 <% if x['proxy_set_header'] -%>    proxy_set_header    <%= x['proxy_set_header'] %>;<% end -%>		
 <% if x['proxy_set_header1'] -%>    proxy_set_header    <%= x['proxy_set_header1'] %>;<% end -%>	
 <% if x['proxy_set_header2'] -%>    proxy_set_header    <%= x['proxy_set_header2'] %>;<% end -%>	
 <% if x['proxy_set_header3'] -%>    proxy_set_header    <%= x['proxy_set_header3'] %>;<% end -%>		
 <% if x['proxy_read_timeout'] -%>    proxy_read_timeout    <%= x['proxy_read_timeout'] %>;<% end -%>		
-<% if x['proxy_redirect'] -%>    proxy_redirect    <%= x['proxy_redirect'] %> https://<%= @domain_name %><%= x["loc_name"] %>;<% end -%>	
+<% if x['proxy_redirect'] -%>    proxy_redirect    <%= x['proxy_redirect'] %> https://<%= @domain_name %><%= x["location_name"] %>;<% end -%>	
     }
 
 <% end -%>

@@ -81,10 +81,10 @@ To start adding a location, first you need to set locations loop to `true` befor
 This first example from locations loop, the base location, uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. To redirect HTTPS requests for `domain.com` to a backend server, assuming that the backend server is listening on port 80, insert the below line in hiera (the `proxy_pass` variable should have the following content `Protocol://IP:PORT` EX: `http://20.20.20.20:80`)
 
 ```
-nginx::location_set: true
+nginx::locations_set: true
 nginx::locations:
   - location:
-    loc_name: '/'
+    location_name: '/'
     proxy_pass: 'http://10.10.10.10:80'
     proxy_set_header: 'Host $host'
     proxy_set_header1: 'X-Real-IP $remote_addr'
@@ -103,7 +103,7 @@ To redirect all requests to comming to `resource2` to a backend server or cluste
 ```
 # Redirect https://domain.com/resource2 requests to `http://to_20.20.20.20` upstream backend previously defined in hiera.
   - location:
-    loc_name: '/resource2'
+    location_name: '/resource2'
     proxy_pass: 'http://to_20.20.20.20'
     proxy_set_header: 'Host $host'
     proxy_set_header1: 'X-Real-IP $remote_addr'
@@ -113,7 +113,7 @@ To redirect all requests to comming to `resource2` to a backend server or cluste
     proxy_redirect: 'http://to_20.20.20.20'
 ```
 
-This line will insert the follwoing block of code in your domain conf file:
+This line will insert the following block of code in your proxy domain conf file:
 
 ```
 location /resource2 {
@@ -129,7 +129,7 @@ location /resource2 {
 
 ```
 
-If you want to stop disable nginx service system-wide, on a node, insert the below lines:
+If you want to stop or disable nginx service system-wide, on a node, insert the below lines:
 ```
 nginx::service_status: 'stopped'
 nginx::service_enabled: false
@@ -216,10 +216,10 @@ nginx::upstream_servers:
     - 'server 20.20.20.21:8080'
     - 'keepalive 32'
 
-nginx::location_set: true
+nginx::locations_set: true
 nginx::locations:
   - location:
-    loc_name: '/'
+    location_name: '/'
     proxy_pass: 'http://10.10.10.10:80'
     proxy_set_header: 'Host $host'
     proxy_set_header1: 'X-Real-IP $remote_addr'
@@ -227,7 +227,7 @@ nginx::locations:
     proxy_read_timeout: '10'
 
   - location:
-    loc_name: '/resource2'
+    location_name: '/resource2'
     proxy_pass: 'http://to_20.20.20.20'
     proxy_set_header: 'Host $host'
     proxy_set_header1: 'X-Real-IP $remote_addr'
