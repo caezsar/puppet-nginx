@@ -12,7 +12,7 @@ To use this setup, client browsers must be configured to pass reqests via nginx 
 
 ## Setup and Use this module
 
-First added Nginx class to Hiera file configured for the specified host or cluster. 
+First add Nginx class to Hiera file configured for the specified host or cluster. 
 EX: `/etc/puppet/code/hiera/nodes/nginx-p-vm001.yaml`
 
 This will just install a nginx server on the specified node with nginx default configurations provided by the distro. The default configurations will not be tampered for the moment
@@ -26,24 +26,25 @@ classes:
 ```
 
 
-To Enable nginx `domain.conf` file via Hiera without any proxy redirection (use some standard nginx vhost configurations), add the below line in Hiera:
+To create Nginx `domain.conf` file via Hiera without any proxy redirection (use some standard nginx vhost configurations), add the below line in Hiera:
 
 ```
 nginx::enable_domain_conf: true
 ```
 
 
-In order to specify the name of the domain and an alias for the domain, if that's the case, insert the below lines in hiera.
+In order to specify the name of the domain and an alias for the domain, if that's the case, insert the below lines in hiera. (default domain name set in manifests falls to `domain.com`)
 
 ```
 nginx::domain_name: 'domain.com'
 nginx::domain_alias: 'www.domain.com'
 ```
-On a cluster, you can setup the domain name using each cluster node `fqdn` fact. Then, just insert the below lines in each node `fqdn.yaml` file to setup custom node configurations.
+On a cluster, you can setup the domain name using each cluster node `fqdn` fact. EX: `/etc/puppet/code/hiera/clusters/web.yaml`
 
 ```
 nginx::domain_name: "%{facts.hostname}"
 ```
+Then, just insert the below lines in each node `fqdn.yaml` file to setup custom node configurations. EX: `/etc/puppet/code/hiera/nodes/web-c-vm001.yaml`
 
 Define some upstream backends servers that you will be using to redirect requests for your domain. 
 You can define as many upstream servers as required. Just specify the name of the upstream backend and insert new items containing `server` directives, comments, load balancing methods, 'Passive Health Checks' for each server line or other upstream block settings. The advantage of this approach is that you can insert as many backend servers as required.
