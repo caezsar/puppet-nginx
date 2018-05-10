@@ -77,8 +77,8 @@ The following upstreams definitions will be inserted in Nginx configuration file
 ```
     
 
-First you need to set locations loop to `true` before proceeding further.
-This first example from locations loop, the base location, uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. To redirect HTTPS requests for `domain.com` to a backend server, assuming that the backend server is listening on port 80, insert the below line in hiera (the `proxy_pass` variable must have the following content `Protocol://IP:PORT` EX: `http://20.20.20.20:80`)
+To start adding a location, first you need to set locations loop to `true` before proceeding further.
+This first example from locations loop, the base location, uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. To redirect HTTPS requests for `domain.com` to a backend server, assuming that the backend server is listening on port 80, insert the below line in hiera (the `proxy_pass` variable should have the following content `Protocol://IP:PORT` EX: `http://20.20.20.20:80`)
 
 ```
 nginx::location_set: true
@@ -98,7 +98,7 @@ However, you could use one of the above defined upstream servers. So, the above 
     proxy_pass:  'http://to_10.10.10.10'
 ```
 
-To redirect all requests to comming to `resource2`, add the below lines into locations loop.  In this example, a pre-defined backend upstream server is used.  
+To redirect all requests to comming to `resource2` to a backend server or cluster, add the below lines into locations loop.  In this example, a pre-defined backend upstream server is used.  
 
 ```
 # Redirect https://domain.com/resource2 requests to `http://to_20.20.20.20` upstream backend previously defined in hiera.
