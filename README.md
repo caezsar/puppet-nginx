@@ -80,15 +80,17 @@ The following upstreams definitions will be inserted in Nginx configuration file
 To start adding a location, first you need to set locations loop to `true` before proceeding further.
 This first example from locations loop, the base location, uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. To redirect HTTPS requests for `domain.com` to a backend server, assuming that the backend server is listening on port 80, insert the below line in hiera (the `proxy_pass` variable should have the following content `Protocol://IP:PORT` EX: `http://20.20.20.20:80`)
 
+### Be aware that the loop function from nginx template `domain.conf.erb` file, iterates and writes the location blocks in nginx conf file in reverse order than how they are declared here in Hiera.
+If this fact poses some issues, although it shouldn't, review [hiera.old](https://github.com/caezsar/puppet-nginx/blob/master/hiera.old.yaml) configuration file where you can find the old loop function.
 ```
 nginx::locations_set: true
-nginx::locations:
-  - location:
-    location_name: '/'
-    proxy_pass: 'http://10.10.10.10:80'
-    proxy_set_header: 'Host $host'
-    proxy_set_header1: 'X-Real-IP $remote_addr'
-    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+  '/':
+    proxy_set_header: 
+       - 'Host $host'
+       - 'X-Real-IP $remote_addr'
+       - 'X-Forwarded-For $proxy_add_x_forwarded_for'
+       - 'X-Forwarded-Proto $scheme'    
+    proxy_pass:  'http://10.10.10.10:80'
     proxy_read_timeout: '10'
 ```
 
@@ -102,15 +104,15 @@ To redirect all requests to comming to `resource2` to a backend server or cluste
 
 ```
 # Redirect https://domain.com/resource2 requests to `http://to_20.20.20.20` upstream backend previously defined in hiera.
-  - location:
-    location_name: '/resource2'
+  '/resource2':
     proxy_pass: 'http://to_20.20.20.20'
-    proxy_set_header: 'Host $host'
-    proxy_set_header1: 'X-Real-IP $remote_addr'
-    proxy_set_header2: 'X-Forwarded-For $proxy_add_x_forwarded_for'
-    proxy_set_header3: 'X-Forwarded-Proto $scheme'
-    proxy_read_timeout: '10'    
-    proxy_redirect: 'http://to_20.20.20.20'
+    proxy_set_header: 
+       - 'Host $host'
+       - 'X-Real-IP $remote_addr'
+       - 'X-Forwarded-For $proxy_add_x_forwarded_for'
+       - 'X-Forwarded-Proto $scheme'         
+    proxy_redirect: 'http://to_20.20.20.20 https://domain.com/resource2/'
+    proxy_read_timeout: '10' 
 ```
 
 This line will insert the following block of code in your proxy domain conf file:
@@ -216,25 +218,27 @@ nginx::upstream_servers:
     - 'server 20.20.20.21:8080'
     - 'keepalive 32'
 
-nginx::locations_set: true
+# The loop function iterates in reverse order
+nginx::location_set: true
 nginx::locations:
-  - location:
-    location_name: '/'
-    proxy_pass: 'http://10.10.10.10:80'
-    proxy_set_header: 'Host $host'
-    proxy_set_header1: 'X-Real-IP $remote_addr'
-    proxy_set_header3: 'X-Forwarded-Proto $scheme'
-    proxy_read_timeout: '10'
-
-  - location:
-    location_name: '/resource2'
+  '/resource2':
     proxy_pass: 'http://to_20.20.20.20'
-    proxy_set_header: 'Host $host'
-    proxy_set_header1: 'X-Real-IP $remote_addr'
-    proxy_set_header2: 'X-Forwarded-For $proxy_add_x_forwarded_for'
-    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_set_header: 
+       - 'Host $host'
+       - 'X-Real-IP $remote_addr'
+       - 'X-Forwarded-For $proxy_add_x_forwarded_for'
+       - 'X-Forwarded-Proto $scheme'         
+    proxy_redirect: 'http://to_20.20.20.20 https://domain.com/resource2/'
     proxy_read_timeout: '10'    
-    proxy_redirect: 'http://to_20.20.20.20'
+  '/':
+    proxy_set_header: 
+       - 'Host $host'
+       - 'X-Real-IP $remote_addr'
+       - 'X-Forwarded-For $proxy_add_x_forwarded_for'
+       - 'X-Forwarded-Proto $scheme'    
+    proxy_pass:  'http://10.100.20.240:8080'
+    proxy_read_timeout: '10' 
+    
 
 nginx::fproxy::enable_proxy: true
 nginx::fproxy::listen_port: '8090'

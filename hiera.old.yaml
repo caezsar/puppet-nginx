@@ -1,0 +1,86 @@
+---
+classes:
+ - nginx
+ - nginx::fproxy
+
+# First added Nginx to classes 
+# This will just install a nginx server on the system with default configurations provided by the distro, not tampering at all
+
+# Enable nginx domain.conf file in Hiera without any proxy redirection ( by default only install nginx, not enable domain file)
+nginx::enable_domain_conf: true
+# Specify the name of the domain and an alias if that's the case.
+nginx::domain_name: 'domain.com'
+nginx::domain_alias: 'www.domain.com'
+# Define some upstream  servers. 
+nginx::upstream_servers:
+  'to_10.10.10.10':
+    - 'server 10.10.10.10:80'
+#You can add  as many upstream server as required. Just insert a new array item  containing a server or other  'Passive Health Checks'
+  'to_20.20.20.20':
+    - 'ip_hash'
+    - 'server 20.20.20.20:8080 max_fails=3 fail_timeout=30s'
+    - 'server 20.20.20.21:8080'
+    - 'keepalive 32'
+    
+# Redirect HTTPS domain.com to the first backend server assuming that the backend server is listening on port 80 
+# proxy_pass variable must have the following content Protocol://IP:PORT EX:(string) http://20.20.20.20:80
+# Use one of the defined upstream servers from above or just use your own custom proxy
+# The first example uses  direct connection to custom proxy  -  it does not  reference the above  upstream 
+nginx::locations_set: true
+nginx::locations:
+  - location:
+    location_name: '/'
+    proxy_pass: 'http://10.10.10.10:80'
+    proxy_set_header: 'Host $host'
+    proxy_set_header1: 'X-Real-IP $remote_addr'
+    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_read_timeout: '10'
+# The resource2 is referencing to the defined upstream server  
+# When you referencing a upstream  backend server, make sure you define backend  in hiera .
+# Redirect https://domain.com/resoure2 to http://20.20.20.20:80 assuming that the backend server is listening on port 8080 
+  - location:
+    location_name: '/resource2'
+    proxy_pass: 'http://to_20.20.20.20'
+    proxy_set_header: 'Host $host'
+    proxy_set_header1: 'X-Real-IP $remote_addr'
+    proxy_set_header2: 'X-Forwarded-For $proxy_add_x_forwarded_for'
+    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_read_timeout: '10'    
+    proxy_redirect: 'http://to_20.20.20.20'
+    
+# Old variables for old function in init.pp module file used for above hiera locations:
+	
+#	$loc_name				= undef,
+#       $proxy_pass				= undef,
+#	$proxy_set_header		= undef,
+#	$proxy_set_header1		= undef,
+#	$proxy_set_header2		= undef,
+#	$proxy_set_header3		= undef,
+#	$proxy_read_timeout		= undef,
+#	$proxy_redirect			= undef
+	
+	## domain.conf.erb Loop Function to iterate the commented variables
+#------------------------------------------------------------------------------------------#
+#<% @locations.each do |x| -%>
+#location <%= x["loc_name"] %> {
+#    proxy_pass    <%= x["proxy_pass"] %>;
+#<% if x['proxy_set_header'] -%>    proxy_set_header    <%= x['proxy_set_header'] %>;<% end -%>		
+#<% if x['proxy_set_header1'] -%>    proxy_set_header    <%= x['proxy_set_header1'] %>;<% end -%>	
+#<% if x['proxy_set_header2'] -%>    proxy_set_header    <%= x['proxy_set_header2'] %>;<% end -%>	
+#<% if x['proxy_set_header3'] -%>    proxy_set_header    <%= x['proxy_set_header3'] %>;<% end -%>		
+#<% if x['proxy_read_timeout'] -%>    proxy_read_timeout    <%= x['proxy_read_timeout'] %>;<% end -%>		
+#<% if x['proxy_redirect'] -%>    proxy_redirect    <%= x['proxy_redirect'] %> https://<%= @domain_name %><%= x["loc_name"] %>;<% end -%>	
+#    }
+#<% end -%>	
+#-------------------------------------------------------------------------------------------#	
+
+
+# Nginx forward proxy works only for HTTP requests for now!
+# First add nginx::fproxy to hiera class.
+# Then enable the proxy configuration file. otherwise will not apply or the file will get removed
+nginx::fproxy::enable_proxy: true
+## You can specify your own values for listen port, resolver and logs. Otherwise use defaults set-up via the module file
+## Change listening port
+nginx::fproxy::listen_port: '8090'
+## Change resolver
+nginx::fproxy::resolver: '8.8.8.8'
