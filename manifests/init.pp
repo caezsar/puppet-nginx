@@ -2,14 +2,14 @@
 class nginx (
 
 # Use the varaibles to setup domain proxies for base domain and resource2 path defined in domain conf file
-  $domain_name				    = 'domain.com',
-  $domain_alias					= undef,
+  $domain_name				= 'domain.com',
+  $domain_alias				= undef,
   $enable_domain_conf			= false,
   $domain_file			        = "${domain_name}.conf",
-  $service_status				= 'running',
-  $service_enabled				= true,
-  $location_set					= false,
-  $upstream_servers			    = {},
+  $service_status			= 'running',
+  $service_enabled			= true,
+  $location_set				= false,
+  $upstream_servers			= {},
   $locations				= {},  
         $loc_name			= undef,
         $proxy_pass			= undef,
@@ -56,7 +56,7 @@ if $enable_domain_conf {
   
 } else {
 
-file { "/etc/nginx/sites-enabled/${domain_file}":
+    file { "/etc/nginx/sites-enabled/${domain_file}":
       ensure  => absent,
       notify => Service['nginx'],
          }
