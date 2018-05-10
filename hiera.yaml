@@ -23,15 +23,33 @@ nginx::upstream_servers:
     - 'keepalive 32'
     
 # Redirect HTTPS domain.com to the first backend server assuming that the backend server is listening on port 80 
-# base_domain_proxy_pass variable must have the following content Protocol://IP:PORT EX:(string) http://20.20.20.20:80
-#Use one of the defined upstream servers from above or just use your own custom proxy
+# proxy_pass variable must have the following content Protocol://IP:PORT EX:(string) http://20.20.20.20:80
+# Use one of the defined upstream servers from above or just use your own custom proxy
 # The first example uses  direct connection to custom proxy  -  it does not  reference the above  upstream 
-nginx::base_domain_proxy_pass: 'http://10.10.10.10:80'
-
+nginx::location_set: true
+nginx::locations:
+  - location:
+    loc_name: '/'
+    proxy_pass: 'http://10.10.10.10:80'
+    proxy_set_header: 'Host $host'
+    proxy_set_header1: 'X-Real-IP $remote_addr'
+    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_read_timeout: '10'
 # The resource2 is referencing to the defined upstream server  
 # When you referencing a upstream  backend server, make sure you define backend  in hiera .
 # Redirect https://domain.com/resoure2 to http://20.20.20.20:80 assuming that the backend server is listening on port 8080 
-nginx::resource2_domain_proxy_pass: 'http://to_20.20.20.20'
+  - location:
+    loc_name: '/resource2'
+    proxy_pass: 'http://to_20.20.20.20'
+    proxy_set_header: 'Host $host'
+    proxy_set_header1: 'X-Real-IP $remote_addr'
+    proxy_set_header2: 'X-Forwarded-For $proxy_add_x_forwarded_for'
+    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_read_timeout: '10'    
+    proxy_redirect: 'http://to_20.20.20.20'
+    
+
+
 
 # Nginx forward proxy works only for HTTP requests for now!
 # First add nginx::fproxy to hiera class.

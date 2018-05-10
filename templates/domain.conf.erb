@@ -46,23 +46,22 @@ ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
     access_log            /var/log/nginx/<%= @domain_name %>_access.log;
     error_log             /var/log/nginx/<%= @domain_name %>_error.log;
 
-<% if @base_domain_proxy_pass -%>
+<% if @location_set == true -%>
 
-# First redirect block for base domain. All requests for https://domain.com will be redirected  to 10.10.10.10 port 80 (Via Hiera) 
-## assuming that the backend server is listening on port 80 
-
-    location / {
-      proxy_pass  <%= @base_domain_proxy_pass %>;
-      proxy_set_header        Host $host;
-      proxy_set_header        X-Real-IP $remote_addr;
-      proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header        X-Forwarded-Proto $scheme;
-      proxy_read_timeout  10;
-
+<% @locations.each do |x| -%>
+location <%= x["loc_name"] %> {
+    proxy_pass    <%= x["proxy_pass"] %>;
+<% if x['proxy_set_header'] -%>    proxy_set_header    <%= x['proxy_set_header'] %>;<% end -%>		
+<% if x['proxy_set_header1'] -%>    proxy_set_header    <%= x['proxy_set_header1'] %>;<% end -%>	
+<% if x['proxy_set_header2'] -%>    proxy_set_header    <%= x['proxy_set_header2'] %>;<% end -%>	
+<% if x['proxy_set_header3'] -%>    proxy_set_header    <%= x['proxy_set_header3'] %>;<% end -%>		
+<% if x['proxy_read_timeout'] -%>    proxy_read_timeout    <%= x['proxy_read_timeout'] %>;<% end -%>		
+<% if x['proxy_redirect'] -%>    proxy_redirect    <%= x['proxy_redirect'] %> https://<%= @domain_name %><%= x["loc_name"] %>;<% end -%>	
     }
-	
+
+<% end -%>
 <% else %> 
-# If the @base_domain_proxy_pass is not set-up, skip with default Nginx location block and set the filesystem webroot path and indexes
+# If the @location_set is not set-up, skip with default Nginx location block and set the filesystem webroot path and indexes
 
       root /var/www/html/<%= @domain_name %>;
                index index.php index.html index.cgi;
@@ -75,30 +74,7 @@ ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
         }
 
 <% end -%>
-<% if @resource2_domain_proxy_pass -%>
-
-### Second redirection block. Redirect requests for https://domain.com/resource2 to 20.20.20.20 port 8080. The redirect string (protocol:IP:Port) is defined via Hiera
-## If the @resource2_domain_proxy_pass variable is not set-up, don't set up anything furter, just close the block
-
-    location /resource2 {
-
-# base_domain_proxy_pass variable must have the following content Protocol://IP:PORT EX:(string) http://20.20.20.20:80
-
-      proxy_pass  <%= @resource2_domain_proxy_pass %>;
-      #Return location of the request 
-      proxy_redirect   <%= @resource2_domain_proxy_pass %> https://<%= @domain_name %>/resource2/;
-      proxy_set_header        Host $host;
-      proxy_set_header        X-Real-IP $remote_addr;
-      proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header        X-Forwarded-Proto $scheme;
-      proxy_read_timeout  10;
-
-    }
-<% end -%>
-
   }
-
-
 
 
 

@@ -8,11 +8,17 @@ class nginx (
   $domain_file			        = "${domain_name}.conf",
   $service_status				= 'running',
   $service_enabled				= true,
-  $base_domain_proxy_pass 	    = undef,
-  $resource2_domain_proxy_pass	= undef,
-  
+  $location_set					= false,
   $upstream_servers			    = {},
-
+  $locations				= {},  
+        $loc_name			= undef,
+        $proxy_pass			= undef,
+	$proxy_set_header		= undef,
+	$proxy_set_header1		= undef,
+	$proxy_set_header2		= undef,
+	$proxy_set_header3		= undef,
+	$proxy_read_timeout		= undef,
+	$proxy_redirect			= undef
 ) {
 
 # Install Nginx

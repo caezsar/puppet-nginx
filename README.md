@@ -77,39 +77,55 @@ The following upstreams definitions will be inserted in Nginx configuration file
     
 To redirect HTTPS requests for `domain.com` to the first backend server, assuming that the backend server is listening on port 80, insert the below line in hiera (the `base_domain_proxy_pass` variable must have the following content `Protocol://IP:PORT` EX: `http://20.20.20.20:80`)
 
-This first example uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. 
+This first example from locations loop, the base location, uses direct proxy connection to a backend server  -  it does not reference one of the above defined upstreams. You need to first set locations loop to `true` before proceeding further.
 
 ```
-nginx::base_domain_proxy_pass: 'http://10.10.10.10:80'
+nginx::location_set: true
+nginx::locations:
+  - location:
+    loc_name: '/'
+    proxy_pass: 'http://10.10.10.10:80'
+    proxy_set_header: 'Host $host'
+    proxy_set_header1: 'X-Real-IP $remote_addr'
+    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_read_timeout: '10'
 ```
 
 However, you could use one of the above defined upstream servers. So, the above line should have the below content:
-### When you referencing a upstream backend server in `base_domain_proxy_pass`, make sure you previously define the backend in hiera.
+### When you referencing a upstream backend server in `proxy_pass` locations variable, make sure you previously define the backend upstream in hiera.
 ```
-nginx::base_domain_proxy_pass: 'http://to_10.10.10.10'
+    proxy_pass:  'http://to_10.10.10.10'
 ```
 
-To redirect all requests to comming to `resource2`, add the below line.  We also are referencing a pre-defined upstream server.  
+To redirect all requests to comming to `resource2`, add the below lines into locations loop.  In this example, a pre-defined backend upstream server is used.  
 
 ```
-# Redirect https://domain.com/resource2 requests to http://to_20.20.20.20 upstream backend previously defined in hiera.
-nginx::resource2_domain_proxy_pass: 'http://to_20.20.20.20'
+# Redirect https://domain.com/resource2 requests to `http://to_20.20.20.20` upstream backend previously defined in hiera.
+  - location:
+    loc_name: '/resource2'
+    proxy_pass: 'http://to_20.20.20.20'
+    proxy_set_header: 'Host $host'
+    proxy_set_header1: 'X-Real-IP $remote_addr'
+    proxy_set_header2: 'X-Forwarded-For $proxy_add_x_forwarded_for'
+    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_read_timeout: '10'    
+    proxy_redirect: 'http://to_20.20.20.20'
 ```
 
 This line will insert the follwoing block of code in your domain conf file:
 
 ```
-    location /resource2 {
-      proxy_pass  http://to_20.20.20.20;
-      #Return location of the request
-      proxy_redirect   http://to_20.20.20.20 https://domain.com/resource2/;
-      proxy_set_header        Host $host;
-      proxy_set_header        X-Real-IP $remote_addr;
-      proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header        X-Forwarded-Proto $scheme;
-      proxy_read_timeout  10;
-
+location /resource2 {
+    proxy_pass    http://to_20.20.20.20;
+    proxy_set_header    Host $host;
+    proxy_set_header    X-Real-IP $remote_addr;
+    proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header    X-Forwarded-Proto $scheme;
+    proxy_read_timeout    10;
+    #Return location of the request
+    proxy_redirect    http://to_20.20.20.20 https://domain.com/resource2;
     }
+
 ```
 
 If you want to stop disable nginx service system-wide, on a node, insert the below lines:
@@ -188,6 +204,7 @@ classes:
 nginx::enable_domain_conf: true
 nginx::domain_name: 'domain.com'
 nginx::domain_alias: 'www.domain.com'
+
 nginx::upstream_servers:
   'to_10.10.10.10':
     - 'server 10.10.10.10:80'
@@ -197,8 +214,26 @@ nginx::upstream_servers:
     - 'server 20.20.20.20:8080 max_fails=3 fail_timeout=30s'
     - 'server 20.20.20.21:8080'
     - 'keepalive 32'
-nginx::base_domain_proxy_pass: 'http://10.10.10.10:80'
-nginx::resource2_domain_proxy_pass: 'http://to_20.20.20.20'
+
+nginx::location_set: true
+nginx::locations:
+  - location:
+    loc_name: '/'
+    proxy_pass: 'http://10.10.10.10:80'
+    proxy_set_header: 'Host $host'
+    proxy_set_header1: 'X-Real-IP $remote_addr'
+    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_read_timeout: '10'
+
+  - location:
+    loc_name: '/resource2'
+    proxy_pass: 'http://to_20.20.20.20'
+    proxy_set_header: 'Host $host'
+    proxy_set_header1: 'X-Real-IP $remote_addr'
+    proxy_set_header2: 'X-Forwarded-For $proxy_add_x_forwarded_for'
+    proxy_set_header3: 'X-Forwarded-Proto $scheme'
+    proxy_read_timeout: '10'    
+    proxy_redirect: 'http://to_20.20.20.20'
 
 nginx::fproxy::enable_proxy: true
 nginx::fproxy::listen_port: '8090'
