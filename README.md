@@ -57,7 +57,7 @@ nginx::upstream_servers:
     - 'ip_hash'
     - '#Implement backend server passive Health Checks'
     - 'server 20.20.20.20:8080 max_fails=3 fail_timeout=30s'
-    - 'server 20.20.20.21:8080'
+    - 'server 20.20.20.21:8080 weight=3'
     - 'keepalive 32'
 ```
 
@@ -84,6 +84,7 @@ This first example from locations loop, the base location, uses direct proxy con
 If this fact poses some issues, although it shouldn't, review [hiera.old](https://github.com/caezsar/puppet-nginx/blob/master/hiera.old.yaml) configuration file where you can find the old loop function.
 ```
 nginx::locations_set: true
+nginx::locations:
   '/':
     proxy_set_header: 
        - 'Host $host'
@@ -112,7 +113,24 @@ To redirect all requests to comming to `resource2` to a backend server or cluste
        - 'X-Forwarded-For $proxy_add_x_forwarded_for'
        - 'X-Forwarded-Proto $scheme'         
     proxy_redirect: 'http://to_20.20.20.20 https://domain.com/resource2/'
-    proxy_read_timeout: '10' 
+# Add backend server resource buffering options
+    'proxy_read_timeout': '10'
+    'proxy_buffering': 'on'
+    'proxy_buffer_size': '1k'
+    'proxy_buffers 24': '4k'
+    'proxy_busy_buffers_size': '8k'
+    'proxy_max_temp_file_size': '2048m'
+    'proxy_temp_file_write_size': '32k'    
+# Add headers cache control options
+    expires: '-1'
+    'add_header Cache-Control': '"no-store"'
+    expires: '-1'
+    'add_header Cache-Control': '"no-store"'
+    'add_header X-Cache-Status': '$upstream_cache_status'
+    'proxy_cache_methods': 'GET HEAD POST'
+    'proxy_cache_bypass': '$cookie_nocache $arg_nocache'
+
+
 ```
 
 This line will insert the following block of code in your proxy domain conf file:
@@ -229,7 +247,21 @@ nginx::locations:
        - 'X-Forwarded-For $proxy_add_x_forwarded_for'
        - 'X-Forwarded-Proto $scheme'         
     proxy_redirect: 'http://to_20.20.20.20 https://domain.com/resource2/'
-    proxy_read_timeout: '10'    
+    'proxy_read_timeout': '10'
+    'proxy_buffering': 'on'
+    'proxy_buffer_size': '1k'
+    'proxy_buffers 24': '4k'
+    'proxy_busy_buffers_size': '8k'
+    'proxy_max_temp_file_size': '2048m'
+    'proxy_temp_file_write_size': '32k'  
+# Add headers cache control options
+    expires: '-1'
+    'add_header Cache-Control': '"no-store"'
+    'add_header X-Cache-Status': '$upstream_cache_status'
+    'proxy_cache_methods': 'GET HEAD POST'
+    'proxy_cache_bypass': '$cookie_nocache $arg_nocache'
+ 
+  
   '/':
     proxy_set_header: 
        - 'Host $host'
