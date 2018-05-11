@@ -71,7 +71,7 @@ The following upstreams definitions will be inserted in Nginx configuration file
         ip_hash;
         #Implement backend server passive Health Checks;
         server 20.20.20.20:8080 max_fails=3 fail_timeout=30s;
-        server 20.20.20.21:8080;
+        server 20.20.20.21:8080 weight=3;
         keepalive 32;
 }
 ```
@@ -136,16 +136,27 @@ To redirect all requests to comming to `resource2` to a backend server or cluste
 This line will insert the following block of code in your proxy domain conf file:
 
 ```
-location /resource2 {
-    proxy_pass    http://to_20.20.20.20;
-    proxy_set_header    Host $host;
-    proxy_set_header    X-Real-IP $remote_addr;
-    proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header    X-Forwarded-Proto $scheme;
-    proxy_read_timeout    10;
-    #Return location of the request
-    proxy_redirect    http://to_20.20.20.20 https://domain.com/resource2;
-    }
+                location /resource2 {
+        add_header Cache-Control                "no-store";
+        add_header X-Cache-Status               $upstream_cache_status;
+        expires         -1;
+        proxy_buffer_size               1k;
+        proxy_buffering         on;
+        proxy_buffers 24                4k;
+        proxy_busy_buffers_size         8k;
+        proxy_cache_bypass              $cookie_nocache $arg_nocache;
+        proxy_cache_methods             GET HEAD POST;
+        proxy_max_temp_file_size                2048m;
+        proxy_pass              http://to_20.20.20.20;
+        proxy_read_timeout              10;
+        proxy_redirect          http://to_20.20.20.20 https://domain.com/resource2/;
+        proxy_set_header                Host $host;
+        proxy_set_header                X-Real-IP $remote_addr;
+        proxy_set_header                X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header                X-Forwarded-Proto $scheme;
+        proxy_temp_file_write_size              32k;
+                }
+
 
 ```
 

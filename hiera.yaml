@@ -19,7 +19,7 @@ nginx::upstream_servers:
   'to_20.20.20.20':
     - 'ip_hash'
     - 'server 20.20.20.20:8080 max_fails=3 fail_timeout=30s'
-    - 'server 20.20.20.21:8080'
+    - 'server 20.20.20.21:8080 weight=3'
     - 'keepalive 32'
     
 # Redirect HTTPS domain.com to the first backend server assuming that the backend server is listening on port 80 
@@ -36,7 +36,20 @@ nginx::locations:
        - 'X-Forwarded-For $proxy_add_x_forwarded_for'
        - 'X-Forwarded-Proto $scheme'         
     proxy_redirect: 'http://to_20.20.20.20 https://domain.com/resource2/'
-    proxy_read_timeout: '10'    
+    'proxy_read_timeout': '10'
+    'proxy_buffering': 'on'
+    'proxy_buffer_size': '1k'
+    'proxy_buffers 24': '4k'
+    'proxy_busy_buffers_size': '8k'
+    'proxy_max_temp_file_size': '2048m'
+    'proxy_temp_file_write_size': '32k'    
+# Add headers cache control options - disable cache in this case
+    expires: '-1'
+    'add_header Cache-Control': '"no-store"'
+    'add_header X-Cache-Status': '$upstream_cache_status'
+    'proxy_cache_methods': 'GET HEAD POST'
+    'proxy_cache_bypass': '$cookie_nocache $arg_nocache'
+ 
   '/':
     proxy_set_header: 
        - 'Host $host'
