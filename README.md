@@ -160,6 +160,34 @@ This line will insert the following block of code in your proxy domain conf file
 
 ```
 
+You can also insert other locations in order to deploy PHP-FPM scripts via PHP-FPM processing socket or enable Nginx status page.
+
+```
+  '~ \.php$':
+    'try_files $uri': '=404'
+    'fastcgi_pass': 'unix:/var/run/php-fpm.socket'
+    'fastcgi_index': 'index.php'
+    'fastcgi_param': 
+      - 'SCRIPT_FILENAME $document_root$fastcgi_script_name'
+      - 'HTTP_PROXY  ""'
+    'fastcgi_read_timeout': '180'
+    'include': '/etc/nginx/fastcgi_params'
+    'allow': '127.0.0.1'
+    'deny': 'all'
+
+  '~ (^/status$)':
+    'try_files $uri': '=404'
+    'fastcgi_pass': 'unix:/var/run/php-fpm.socket'
+    'fastcgi_index': 'index.php'
+    'fastcgi_param': 
+      - 'SCRIPT_FILENAME $document_root$fastcgi_script_name'
+      - 'HTTP_PROXY  ""'
+    'fastcgi_read_timeout': '180'
+    'include': '/etc/nginx/fastcgi_params'
+    'allow': '127.0.0.1'
+    'deny': 'all'
+```
+
 If you want to stop or disable nginx service system-wide, on a node, insert the below lines:
 ```
 nginx::service_status: 'stopped'
@@ -282,6 +310,29 @@ nginx::locations:
     proxy_pass:  'http://10.10.10.10:80'
     proxy_read_timeout: '10' 
     
+  '~ \.php$':
+    'try_files $uri': '=404'
+    'fastcgi_pass': 'unix:/var/run/php-fpm.socket'
+    'fastcgi_index': 'index.php'
+    'fastcgi_param': 
+      - 'SCRIPT_FILENAME $document_root$fastcgi_script_name'
+      - 'HTTP_PROXY  ""'
+    'fastcgi_read_timeout': '180'
+    'include': '/etc/nginx/fastcgi_params'
+    'allow': '127.0.0.1'
+    'deny': 'all'
+
+  '~ (^/status$)':
+    'try_files $uri': '=404'
+    'fastcgi_pass': 'unix:/var/run/php-fpm.socket'
+    'fastcgi_index': 'index.php'
+    'fastcgi_param': 
+      - 'SCRIPT_FILENAME $document_root$fastcgi_script_name'
+      - 'HTTP_PROXY  ""'
+    'fastcgi_read_timeout': '180'
+    'include': '/etc/nginx/fastcgi_params'
+    'allow': '127.0.0.1'
+    'deny': 'all'
 
 nginx::fproxy::enable_proxy: true
 nginx::fproxy::listen_port: '8090'

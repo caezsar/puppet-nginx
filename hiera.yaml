@@ -58,7 +58,31 @@ nginx::locations:
        - 'X-Forwarded-Proto $scheme'    
     proxy_pass:  'http://10.100.20.240:8080'
     proxy_read_timeout: '10'
+#PHP-FPM
+  '~ \.php$':
+    'try_files $uri': '=404'
+    'fastcgi_pass': 'unix:/var/run/php-fpm.socket'
+    'fastcgi_index': 'index.php'
+    'fastcgi_param': 
+      - 'SCRIPT_FILENAME $document_root$fastcgi_script_name'
+      - 'HTTP_PROXY  ""'
+    'fastcgi_read_timeout': '180'
+    'include': '/etc/nginx/fastcgi_params'
+    'allow': '127.0.0.1'
+    'deny': 'all'
 
+# Status page
+  '~ (^/status$)':
+    'try_files $uri': '=404'
+    'fastcgi_pass': 'unix:/var/run/php-fpm.socket'
+    'fastcgi_index': 'index.php'
+    'fastcgi_param': 
+      - 'SCRIPT_FILENAME $document_root$fastcgi_script_name'
+      - 'HTTP_PROXY  ""'
+    'fastcgi_read_timeout': '180'
+    'include': '/etc/nginx/fastcgi_params'
+    'allow': '127.0.0.1'
+    'deny': 'all'
 # Nginx forward proxy works only for HTTP requests for now!
 # First add nginx::fproxy to hiera class.
 # Then enable the proxy configuration file. otherwise will not apply or the file will get removed
