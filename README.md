@@ -124,8 +124,6 @@ To redirect all requests to comming to `resource2` to a backend server or cluste
 # Add headers cache control options
     expires: '-1'
     'add_header Cache-Control': '"no-store"'
-    expires: '-1'
-    'add_header Cache-Control': '"no-store"'
     'add_header X-Cache-Status': '$upstream_cache_status'
     'proxy_cache_methods': 'GET HEAD POST'
     'proxy_cache_bypass': '$cookie_nocache $arg_nocache'
